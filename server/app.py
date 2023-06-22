@@ -3,10 +3,12 @@
 from flask import Flask, jsonify, request, make_response
 from flask_migrate import Migrate
 from flask_restful import Api, Resource
+from flask_cors import CORS
 
 from models import db, Plant
 
 app = Flask(__name__)
+CORS(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///plants.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.json.compact = False
@@ -31,22 +33,18 @@ class Plants(Resource):
     
     def post(self):
 
+        data = request.get_json()
+
         new_plant = Plant(
-            # id= request.form['id'],
-            name = request.form['name'],
-            image = request.form['image'],
-            price = request.form['price'],
-           )
+            name=data['name'],
+            image=data['image'],
+            price=data['price'],
+        )
+
         db.session.add(new_plant)
         db.session.commit()
 
-        plant_dict = new_plant.to_dict()
-
-        response = make_response(
-            jsonify(plant_dict),
-            201
-        )
-        return response
+        return make_response(new_plant.to_dict(), 201)
     
 api.add_resource(Plants, '/plants')
 
